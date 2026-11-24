@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#17324d">
+  <meta name="description" content="Sistema escolar para reservar salas e laboratórios.">
+  <title>Reservas do Colégio</title>
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" href="./icons/icon-192.png">
+  <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark" aria-hidden="true">RC</div>
+      <div>
+        <h1>Reservas do Colégio</h1>
+        <p>Salas, laboratórios e espaços compartilhados</p>
+      </div>
+    </div>
+    <span id="connection-status" class="status" role="status">Verificando conexão…</span>
+  </header>
+
+  <main class="container">
+    <nav class="tabs" aria-label="Seções do sistema">
+      <button class="tab active" data-view="agenda" aria-current="page">Agenda</button>
+      <button class="tab" data-view="reservas">Reservas</button>
+      <button class="tab" data-view="espacos">Espaços</button>
+    </nav>
+
+    <section id="view-agenda" class="view">
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">VISÃO GERAL</p>
+          <h2>Agenda de reservas</h2>
+        </div>
+        <button class="primary" id="new-booking-from-agenda">＋ Nova reserva</button>
+      </div>
+      <div class="panel filters">
+        <div class="field"><label for="agenda-date">Data de referência</label><input type="date" id="agenda-date"></div>
+        <div class="field"><label for="agenda-mode">Exibição</label><select id="agenda-mode">
+            <option value="day">Dia</option>
+            <option value="week">Semana</option>
+          </select></div>
+        <div class="field"><label for="agenda-space">Espaço</label><select id="agenda-space">
+            <option value="">Todos os espaços</option>
+          </select></div>
+        <div class="field"><label for="agenda-teacher">Professor / responsável</label><select id="agenda-teacher">
+            <option value="">Todos</option>
+          </select></div>
+      </div>
+      <div id="agenda-summary" class="summary-line" aria-live="polite"></div>
+      <div id="agenda-content" class="agenda-grid"></div>
+    </section>
+
+    <section id="view-reservas" class="view" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">GERENCIAMENTO</p>
+          <h2>Reservas</h2>
+        </div>
+        <button class="primary" id="new-booking">＋ Nova reserva</button>
+      </div>
+      <div class="panel filters compact">
+        <div class="field"><label for="booking-filter-date">A partir de</label><input type="date"
+            id="booking-filter-date"></div>
+        <div class="field"><label for="booking-search">Buscar responsável, turma ou finalidade</label><input
+            type="search" id="booking-search" placeholder="Digite para filtrar"></div>
+      </div>
+      <div id="booking-list" class="list-stack"></div>
+    </section>
+
+    <section id="view-espacos" class="view" hidden>
+      <div class="section-heading">
+        <div>
+          <p class="eyebrow">ESTRUTURA ESCOLAR</p>
+          <h2>Espaços</h2>
+        </div>
+        <button class="primary" id="new-space">＋ Novo espaço</button>
+      </div>
+      <p class="muted">Cadastre e mantenha os espaços disponíveis para reserva.</p>
+      <div id="space-list" class="space-grid"></div>
+    </section>
+  </main>
+
+  <dialog id="booking-dialog" class="dialog">
+    <form id="booking-form" method="dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">AGENDAMENTO</p>
+          <h2 id="booking-dialog-title">Nova reserva</h2>
+        </div><button type="button" class="icon-button" data-close="booking-dialog" aria-label="Fechar">×</button>
+      </div>
+      <input type="hidden" id="booking-id">
+      <div class="form-grid">
+        <div class="field full"><label for="booking-space">Espaço</label><select id="booking-space" required></select>
+        </div>
+        <div class="field"><label for="booking-date">Data</label><input type="date" id="booking-date" required></div>
+        <div class="field"><label for="booking-teacher">Responsável</label><input id="booking-teacher" maxlength="90"
+            required placeholder="Nome do professor"></div>
+        <div class="field"><label for="booking-start">Início</label><input type="time" id="booking-start" min="07:20"
+            max="18:15" required></div>
+        <div class="field"><label for="booking-end">Fim</label><input type="time" id="booking-end" min="07:20"
+            max="18:15" required></div>
+        <div class="field"><label for="booking-class">Turma</label><input id="booking-class" maxlength="40" required
+            placeholder="Ex.: 2º DS"></div>
+        <div class="field full"><label for="booking-purpose">Finalidade</label><textarea id="booking-purpose" rows="3"
+            maxlength="240" required placeholder="Descreva brevemente a atividade"></textarea></div>
+      </div>
+      <p id="booking-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions"><button type="button" class="secondary"
+          data-close="booking-dialog">Cancelar</button><button type="submit" class="primary">Salvar reserva</button>
+      </div>
+    </form>
+  </dialog>
+
+  <dialog id="space-dialog" class="dialog">
+    <form id="space-form" method="dialog">
+      <div class="dialog-heading">
+        <div>
+          <p class="eyebrow">CADASTRO</p>
+          <h2 id="space-dialog-title">Novo espaço</h2>
+        </div><button type="button" class="icon-button" data-close="space-dialog" aria-label="Fechar">×</button>
+      </div>
+      <input type="hidden" id="space-id">
+      <div class="form-grid">
+        <div class="field full"><label for="space-name">Nome</label><input id="space-name" maxlength="80" required>
+        </div>
+        <div class="field"><label for="space-type">Tipo</label><select id="space-type" required>
+            <option value="Laboratório">Laboratório</option>
+            <option value="Biblioteca">Biblioteca</option>
+            <option value="Auditório">Auditório</option>
+            <option value="Sala">Sala</option>
+            <option value="Outro">Outro</option>
+          </select></div>
+        <div class="field"><label for="space-capacity">Capacidade (pessoas)</label><input id="space-capacity"
+            type="number" min="1" max="1000" required></div>
+        <div class="field full"><label for="space-resources">Recursos disponíveis</label><textarea id="space-resources"
+            rows="3" maxlength="300" placeholder="Ex.: projetor, computadores, microscópios"></textarea></div>
+      </div>
+      <p id="space-error" class="form-error" role="alert"></p>
+      <div class="dialog-actions"><button type="button" class="secondary"
+          data-close="space-dialog">Cancelar</button><button type="submit" class="primary">Salvar espaço</button></div>
+    </form>
+  </dialog>
+
+  <footer><span>Horário de funcionamento: 07:20 às 18:15</span><span id="storage-note">Dados salvos neste
+      dispositivo.</span></footer>
+  <script src="./app.js" defer></script>
+</body>
+
+</html>
